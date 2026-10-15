@@ -1,20 +1,41 @@
 package com.lorenzon;
 
 import com.badlogic.gdx.ApplicationListener;
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 
 public class Main implements ApplicationListener {
 
+    Texture cat1Texture;
+    Texture cat2Texture;
+    SpriteBatch batch;
     ShapeRenderer shapeRenderer;
     FitViewport viewport;
+    Vector2 touch;
+
+    float cellSize = 1.6f;
+    float gridSize = 3 * cellSize;
+    float startX;
+    float startY;
+    int[][] cats;
+    int turn;
 
     @Override
     public void create() {
+        cat1Texture = new Texture("cat1.png");
+        cat2Texture = new Texture("cat2.png");
+        batch = new SpriteBatch();
         shapeRenderer = new ShapeRenderer();
         viewport = new FitViewport(8, 5);
+        touch = new Vector2();
+        cats = new int[3][3];
+        turn = 1;
     }
 
     @Override
@@ -25,25 +46,51 @@ public class Main implements ApplicationListener {
 
     @Override
     public void render() {
+        input();
         draw();
     }
 
+    private void input() {
+        if (Gdx.input.justTouched()) {
+            float touchX = Gdx.input.getX();
+            float touchY = Gdx.input.getY();
+
+            viewport.unproject(touch.set(touchX, touchY));
+
+            float mouseX = touch.x;
+            float mouseY = touch.y;
+
+            boolean insideGrid = mouseX >= startX && mouseX < startX + gridSize && mouseY >= startY && mouseY < startY + gridSize;
+
+            if (insideGrid) {
+                int column = (int) ((mouseX - startX) / cellSize);
+                int line = (int) ((mouseY - startY) / cellSize);
+
+                if (cats[line][column] != 0) {
+                    return;
+                }
+
+                cats[line][column] = turn;
+                turn = (turn == 1) ? 2 : 1;
+            }
+        }
+    }
+
     private void draw() {
-        ScreenUtils.clear(Color.BLACK);
+        Color softGreen = new Color(216f / 255f, 226f / 255f, 220f / 255f, 1.0f);
+
+        ScreenUtils.clear(softGreen);
         viewport.apply();
         shapeRenderer.setProjectionMatrix(viewport.getCamera().combined);
 
         shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
-        shapeRenderer.setColor(Color.WHITE);
+        shapeRenderer.setColor(Color.BLACK);
 
         float worldWidth = viewport.getWorldWidth();
         float worldHeight = viewport.getWorldHeight();
 
-        float cellSize = 1.6f;
-        float gridSize = 3 * cellSize;
-
-        float startX = (worldWidth - gridSize) / 2f;
-        float startY = (worldHeight - gridSize) / 2f;
+        startX = (worldWidth - gridSize) / 2f;
+        startY = (worldHeight - gridSize) / 2f;
 
         // Vertical lines
         for (int i = 1; i < 3; i++) {
@@ -58,6 +105,26 @@ public class Main implements ApplicationListener {
         }
 
         shapeRenderer.end();
+
+        batch.setProjectionMatrix(viewport.getCamera().combined);
+        batch.begin();
+
+        for (int line = 0; line < 3; line++) {
+            for (int column = 0; column < 3; column++) {
+                if (cats[line][column] != 0) {
+                    float x = (column * cellSize) + startX;
+                    float y = (line * cellSize) + startY;
+
+                    if (cats[line][column] == 1) {
+                        batch.draw(cat1Texture, x, y, cellSize, cellSize);
+                    } else {
+                        batch.draw(cat2Texture, x, y, cellSize, cellSize);
+                    }
+                }
+            }
+        }
+
+        batch.end();
     }
 
     @Override
@@ -72,6 +139,8 @@ public class Main implements ApplicationListener {
 
     @Override
     public void dispose() {
-        // Destroy application's resources here.
+        cat1Texture.dispose();
+        batch.dispose();
+        shapeRenderer.dispose();
     }
 }
