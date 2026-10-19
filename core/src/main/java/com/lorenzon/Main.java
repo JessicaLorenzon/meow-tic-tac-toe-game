@@ -2,6 +2,7 @@ package com.lorenzon;
 
 import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
@@ -40,7 +41,7 @@ public class Main implements ApplicationListener {
         cat2Texture = new Texture("cat2.png");
         batch = new SpriteBatch();
         shapeRenderer = new ShapeRenderer();
-        viewport = new FitViewport(9, 6);
+        viewport = new FitViewport(10, 7);
         touch = new Vector2();
         cats = new int[3][3];
         turn = 1;
@@ -90,6 +91,10 @@ public class Main implements ApplicationListener {
                 moves++;
                 turn = (turn == 1) ? 2 : 1;
             }
+        }
+
+        if (Gdx.input.isKeyJustPressed(Input.Keys.R)) {
+            restartGame();
         }
     }
 
@@ -173,9 +178,9 @@ public class Main implements ApplicationListener {
 
         if (gameOver) {
             if (winner) {
-                message = "Player " + (turn == 1 ? "2" : "1") + " winner!";
+                message = "Player " + (turn == 1 ? "2" : "1") + " winner!\nPress the R key to restart";
             } else {
-                message = "Draw!";
+                message = "Draw!\nPress the R key to restart";
             }
         } else {
             message = "Player " + turn + " turn";
@@ -190,6 +195,20 @@ public class Main implements ApplicationListener {
         font.draw(batch, layout, textX, textY);
 
         batch.end();
+    }
+
+    private void restartGame() {
+        for (int line = 0; line < 3; line++) {
+            for (int column = 0; column < 3; column++) {
+                cats[line][column] = 0;
+            }
+        }
+
+        turn = 1;
+        moves = 0;
+        winner = false;
+        gameOver = false;
+        message = "Player " + turn + " turn";
     }
 
     @Override
