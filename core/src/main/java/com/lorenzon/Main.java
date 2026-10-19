@@ -25,6 +25,9 @@ public class Main implements ApplicationListener {
     float startY;
     int[][] cats;
     int turn;
+    int moves;
+    boolean winner;
+    boolean gameOver;
 
     @Override
     public void create() {
@@ -36,6 +39,9 @@ public class Main implements ApplicationListener {
         touch = new Vector2();
         cats = new int[3][3];
         turn = 1;
+        moves = 0;
+        winner = false;
+        gameOver = false;
     }
 
     @Override
@@ -47,11 +53,13 @@ public class Main implements ApplicationListener {
     @Override
     public void render() {
         input();
+        logic();
         draw();
     }
 
     private void input() {
         if (Gdx.input.justTouched()) {
+            if (gameOver) return;
             float touchX = Gdx.input.getX();
             float touchY = Gdx.input.getY();
 
@@ -66,13 +74,47 @@ public class Main implements ApplicationListener {
                 int column = (int) ((mouseX - startX) / cellSize);
                 int line = (int) ((mouseY - startY) / cellSize);
 
-                if (cats[line][column] != 0) {
-                    return;
-                }
+                if (cats[line][column] != 0) return;
 
                 cats[line][column] = turn;
+                moves++;
                 turn = (turn == 1) ? 2 : 1;
             }
+        }
+    }
+
+    private void logic() {
+        if (gameOver) return;
+
+        for (int line = 0; line < 3; line++) {
+            if (cats[line][0] != 0 && cats[line][0] == cats[line][1] && cats[line][1] == cats[line][2]) {
+                System.out.println("Victory line!");
+                winner = true;
+                break;
+            }
+        }
+        for (int column = 0; column < 3 && !winner; column++) {
+            if (cats[0][column] != 0 && cats[0][column] == cats[1][column] && cats[1][column] == cats[2][column]) {
+                System.out.println("Victory column!");
+                winner = true;
+            }
+        }
+
+        if (!winner && cats[0][0] != 0 && cats[0][0] == cats[1][1] && cats[1][1] == cats[2][2]) {
+            System.out.println("Victory diagonal 1!");
+            winner = true;
+        }
+
+        if (!winner && cats[0][2] != 0 && cats[0][2] == cats[1][1] && cats[1][1] == cats[2][0]) {
+            System.out.println("Victory diagonal 2!");
+            winner = true;
+        }
+
+        if (winner) {
+            gameOver = true;
+        } else if (moves == 9) {
+            System.out.println("Draw!");
+            gameOver = true;
         }
     }
 
