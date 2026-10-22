@@ -32,7 +32,20 @@ public class Main implements ApplicationListener {
             Vector2 touch = new Vector2(Gdx.input.getX(), Gdx.input.getY());
 
             if (renderer.isInsideGrid(touch)) {
-                game.play(renderer.getRow(touch), renderer.getCol(touch));
+                int row = renderer.getRow(touch);
+                int col = renderer.getCol(touch);
+
+                Cell cell = game.getBoard().getCell(row, col);
+
+                if (cell.isEmpty()) {
+                    game.play(row, col);
+
+                    renderer.playPlaceSound();
+
+                    if (game.getStatus() == GameStatus.PLAYER_WON || game.getStatus() == GameStatus.DRAW) {
+                        renderer.playGameOverSound();
+                    }
+                }
             }
         }
 
